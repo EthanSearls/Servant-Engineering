@@ -104,21 +104,22 @@ void setup() {
 
 void loop() {
   // Broadcast a message to all devices within the network
-  uint8_t data[32];
+  uint8_t data;
+  uint8_t *send_data = &data;
   //uint8_t send_data = &data;
   if (digitalRead(2))
   {
     if (off_on == 0)
     {
       off_on = 1;
-      data[0] = ON;
-      broadcast_peer.send_message(data, 1);
+      data = ON;
+      broadcast_peer.send_message(send_data, 1);
     }
     else
     {
       off_on = 0;
-      data[0] = OFF;
-      broadcast_peer.send_message(data, 1);
+      data = OFF;
+      broadcast_peer.send_message(send_data, 1);
     }
   }
   //snprintf(data, sizeof(data), "Hello, World! #%lu", msg_count++);
