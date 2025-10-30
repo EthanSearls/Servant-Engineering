@@ -19,6 +19,15 @@
 /* Definitions */
 
 #define ESPNOW_WIFI_CHANNEL 6
+#define OFF (0)
+#define ON (1)
+#define VOL_UP (2)
+#define VOL_DOWN (3)
+#define CHAN_UP (4)
+#define CHAN_DOWN (5)
+
+/* Variables */
+int off_on = 0;
 
 /* Classes */
 
@@ -89,14 +98,32 @@ void setup() {
   Serial.printf("ESP-NOW version: %d, max data length: %d\n", ESP_NOW.getVersion(), ESP_NOW.getMaxDataLen());
 
   Serial.println("Setup complete. Broadcasting messages every 5 seconds.");
+
+  pinMode(2, INPUT_PULLUP);
 }
 
 void loop() {
   // Broadcast a message to all devices within the network
-  char data[32];
-  snprintf(data, sizeof(data), "Hello, World! #%lu", msg_count++);
+  uint8_t data[32];
+  //uint8_t send_data = &data;
+  if (digitalRead(2))
+  {
+    if (off_on == 0)
+    {
+      off_on = 1;
+      data[0] = ON;
+      broadcast_peer.send_message(data, 1);
+    }
+    else
+    {
+      off_on = 0;
+      data[0] = OFF;
+      broadcast_peer.send_message(data, 1);
+    }
+  }
+  //snprintf(data, sizeof(data), "Hello, World! #%lu", msg_count++);
 
-  Serial.printf("Broadcasting message: %s\n", data);
+  Serial.printf("Broadcasting message: %d\n", data);
 
   if (!broadcast_peer.send_message((uint8_t *)data, sizeof(data))) {
     Serial.println("Failed to broadcast message");
