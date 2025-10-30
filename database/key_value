@@ -1,0 +1,39 @@
+#include "stddef.h"
+
+typedef struct {
+    char* key;
+    int value;
+} item;
+
+// A linear search algorithm for searching codes
+int searchCode(item* items, const char* key) {
+    for (size_t i=0; i<sizeof(items); i++) {
+        if (!strcmp(items[i].key, key)) {
+            return items[i].value;
+        }
+    }
+    return -1;
+}
+
+item codes[] = {
+    {"on", 10}, 
+    {"off", 42}, 
+    {"volup", 36}, 
+    {"voldwn", 7},
+    {"chup", 11}, 
+    {"chdwn", 100}, 
+    {"pre1", 20301}, 
+    {"pre2", 100223},
+    {"pre3", 33223},
+    {"pre4", 55322},
+    {"pre5", 44532}
+};
+
+int main(void) {
+    
+
+    //printf(searchCode(codes, "off"));
+    printf("value of 'off' is %d\n", searchCode(codes, "k"));
+
+    return 0;
+}
