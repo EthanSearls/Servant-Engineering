@@ -4,6 +4,7 @@
 
 
 #include <esp_mac.h>  // For the MAC2STR and MACSTR macros
+#include <string>
 
 /* Definitions */
 
@@ -19,6 +20,10 @@
 static int off_on = 0;
 const uint8_t broadcastAddress[] = {0x40, 0x4C, 0xCA, 0x5B, 0xDC, 0x38};
 esp_now_peer_info_t peerInfo;
+static uint64_t old_millis = 0;
+uint8_t data = OFF;
+uint8_t *send_data = &data;
+String broadcast_message;
 
 /* Classes */
 
@@ -63,28 +68,30 @@ void setup() {
 
   Serial.printf("ESP-NOW version: %d, max data length: %d\n", ESP_NOW.getVersion(), ESP_NOW.getMaxDataLen());
 
-  Serial.println("Setup complete. Broadcasting messages every 5 seconds.");
+  //Serial.println("Setup complete. Broadcasting messages every 5 seconds.");
 
-  pinMode(2, INPUT_PULLUP);
+  pinMode(2, INPUT_PULLUP); // Set pin 2 to be an input w/ pull up resistor
 }
 
 void loop() {
-  // Broadcast a message to all devices within the network
-  uint8_t data = NULL;
-  uint8_t *send_data = &data;
-  //uint8_t send_data = &data;
-  if (digitalRead(2))
+if ((millis() - old_millis) > 200) // Button debounce
+{ 
+  old_millis = millis();
+  if (!digitalRead(2)) // If button pressed
   {
     if (off_on == 0)
     {
-      off_on = 1;
       data = ON;
+      off_on = 1;
+      broadcast_message = "ON";
     }
     else
     {
-      off_on = 0;
       data = OFF;
+      off_on = 0;
+      broadcast_message = "OFF";
     }
+    Serial.printf("Broadcasting message: %s(%d)\n", broadcast_message, data);
     if (esp_now_send(peerInfo.peer_addr, send_data, 1) != ESP_OK)
     {
       Serial.printf("Failed to broadcast message\n");
@@ -93,13 +100,7 @@ void loop() {
     {
       Serial.printf("Message broadcasted successfully\n");
     }
+    while (!digitalRead(2)); // Wait while button held
   }
-  //snprintf(data, sizeof(data), "Hello, World! #%lu", msg_count++);
-
-  Serial.printf("Broadcasting message: %d\n", data);
-  /*if (!broadcast_peer.send_message((uint8_t *)data, sizeof(data))) {
-    Serial.println("Failed to broadcast message");
-  }*/
-
-  delay(5000);
+}
 }
