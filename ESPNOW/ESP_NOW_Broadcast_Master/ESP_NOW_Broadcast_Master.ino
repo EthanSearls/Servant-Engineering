@@ -24,6 +24,7 @@ static uint64_t old_millis = 0;
 uint8_t data = OFF;
 uint8_t *send_data = &data;
 String broadcast_message;
+bool button_pressed = false;
 
 /* Classes */
 
@@ -68,9 +69,10 @@ void setup() {
 
   Serial.printf("ESP-NOW version: %d, max data length: %d\n", ESP_NOW.getVersion(), ESP_NOW.getMaxDataLen());
 
-  //Serial.println("Setup complete. Broadcasting messages every 5 seconds.");
-
-  pinMode(2, INPUT_PULLUP); // Set pin 2 to be an input w/ pull up resistor
+  // Set pins 2, 3, 5 to be an input w/ pull up resistor
+  pinMode(2, INPUT_PULLUP); 
+  pinMode(3, INPUT_PULLUP);
+  pinMode(5, INPUT_PULLUP);
 }
 
 void loop() {
@@ -79,6 +81,7 @@ if ((millis() - old_millis) > 200) // Button debounce
   old_millis = millis();
   if (!digitalRead(2)) // If button pressed
   {
+    button_pressed = true;
     if (off_on == 0)
     {
       data = ON;
@@ -91,6 +94,25 @@ if ((millis() - old_millis) > 200) // Button debounce
       off_on = 0;
       broadcast_message = "OFF";
     }
+    while (!digitalRead(2)); // Wait while button held
+  }
+  if (!digitalRead(3))
+  {
+    button_pressed = true;
+    data = VOL_UP;
+    broadcast_message = "VOLUME UP";
+    while (!digitalRead(3)); // Wait while button held
+  }
+  if (!digitalRead(5))
+  {
+    button_pressed = true;
+    data = VOL_DOWN;
+    broadcast_message = "VOLUME DOWN";
+    while (!digitalRead(5)); // Wait while button held
+  }
+}
+if (button_pressed)
+{
     Serial.printf("Broadcasting message: %s(%d)\n", broadcast_message, data);
     if (esp_now_send(peerInfo.peer_addr, send_data, 1) != ESP_OK)
     {
@@ -100,7 +122,6 @@ if ((millis() - old_millis) > 200) // Button debounce
     {
       Serial.printf("Message broadcasted successfully\n");
     }
-    while (!digitalRead(2)); // Wait while button held
-  }
+    button_pressed = false;
 }
 }
